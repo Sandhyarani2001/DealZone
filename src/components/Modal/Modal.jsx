@@ -7,7 +7,7 @@ export default function Modal({ name, address, pincode, phoneNumber, setName, se
     // const context = useContext(myContext)
     // const {mode} = context
 
-  let [isOpen, setIsOpen] = useState(true)
+  let [isOpen, setIsOpen] = useState(false)
 
   function closeModal() {
     setIsOpen(false)
@@ -30,7 +30,7 @@ export default function Modal({ name, address, pincode, phoneNumber, setName, se
             </div>
 
             <Transition appear show={isOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={closeModal}>
+                <Dialog as="div" className="relative z-10 my-16" onClose={closeModal}>
                     <Transition.Child
                         as={Fragment}
                         enter="ease-out duration-300"
