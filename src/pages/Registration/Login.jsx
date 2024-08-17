@@ -28,7 +28,11 @@ function Login() {
         pauseOnHover: true,
         progress: undefined,
         theme:"colored"
-      })
+      });
+
+      // Restore cart data
+      const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
+      localStorage.setItem('cart', JSON.stringify(savedCart)); // Ensure cart data is saved
       
       // localStorage.setItem('user', JSON.stringify(result))
       navigate('/')

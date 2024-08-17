@@ -2,7 +2,7 @@ import React, { Fragment, useContext, useState } from 'react'
 import myContext from '../../context/Data/myContext'
 import { Dialog, Transition } from '@headlessui/react'
 import { FiSun } from 'react-icons/fi'
-import { BsFillCloudSunFill } from 'react-icons/bs'
+import { BsFillMoonStarsFill } from 'react-icons/bs'
 import { Link } from 'react-router-dom'
 import { RxCross2 } from 'react-icons/rx'
 import { useSelector } from 'react-redux'
@@ -17,14 +17,19 @@ function Navbar() {
 
   const user = JSON.parse(localStorage.getItem('user'))
   console.log(user?.user?.email);
- 
+
 
   const logout = () => {
     localStorage.clear('user');
     window.location.href = '/login';
-    }
-  
-    const cartItems = useSelector((state) => state.cart)
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+  }
+
+  const cartItems = useSelector((state) => state.cart);
+
+  const handleLinkClick = () => {
+    setOpen(false);
+  };
 
 
   return (
@@ -65,42 +70,74 @@ function Navbar() {
                     <RxCross2 />
                   </button>
                 </div>
+
                 <div className="space-y-6 border-t border-gray-200 px-4 py-6">
-
-                  <Link to={'/allproducts'} className="text-sm font-medium text-gray-900 " style={{ color: mode === 'dark' ? 'white' : '', }}>
-                    All Products
-                  </Link>
-
-                  {user? " " : <Link to={'/signup'} className="text-sm font-medium text-gray-700 " style={{ color: mode === 'dark' ? 'white' : '', }}>
-                    Signup
-                  </Link> }
-                  
-                  {user? <div className="flow-root">
-                    <Link to={'/order'} style={{ color: mode === 'dark' ? 'white' : '', }} className="-m-2 block p-2 font-medium text-gray-900">
-                      Order
+                  <div className="flex flex-col space-y-4">
+                    <Link
+                      to={'/allproducts'}
+                      className="text-sm font-medium text-gray-900"
+                      style={{ color: mode === 'dark' ? 'white' : '', }}
+                      onClick={handleLinkClick}
+                    >
+                      All Products
                     </Link>
-                  </div> : " " }
 
-                   {user?.user?.email === 'missmama2001@gmail.com' ? 
-                  <div className="flow-root">
-                    <Link to={'/dashboard'} className="-m-2 block p-2 font-medium text-gray-900" style={{ color: mode === 'dark' ? 'white' : '', }}>
-                      admin
-                    </Link>
-                  </div> : " " }
+                    {!user && (
+                      <Link
+                        to={'/signup'}
+                        className="text-sm font-medium text-gray-700"
+                        style={{ color: mode === 'dark' ? 'white' : '', }}
+                        onClick={handleLinkClick}
+                      >
+                        Signup
+                      </Link>
+                    )}
 
-                  {user? 
-                  <div className="flow-root">
-                    <a  className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer" style={{ color: mode === 'dark' ? 'white' : '', }}>
-                      Logout
-                    </a>
-                  </div> : " " }
-                  
-                  <div className="flow-root">
-                    <Link to={'/'} className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer">
+                    {user && (
+                      <Link
+                        to={'/order'}
+                        style={{ color: mode === 'dark' ? 'white' : '', }}
+                        className="-m-2 block p-2 font-medium text-gray-900"
+                        onClick={handleLinkClick}
+                      >
+                        Order
+                      </Link>
+                    )}
+
+                    {user?.user?.email === 'missmama2001@gmail.com' && (
+                      <Link
+                        to={'/dashboard'}
+                        className="-m-2 block p-2 font-medium text-gray-900"
+                        style={{ color: mode === 'dark' ? 'white' : '', }}
+                        onClick={handleLinkClick}
+                      >
+                        Admin
+                      </Link>
+                    )}
+
+                    {user && (
+                      <a
+                        onClick={() => {
+                          logout();
+                          handleLinkClick();
+                        }}
+                        className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer"
+                        style={{ color: mode === 'dark' ? 'white' : '', }}
+                      >
+                        Logout
+                      </a>
+                    )}
+
+                    <Link
+                      to={'/'}
+                      className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer"
+                      onClick={handleLinkClick}
+                    >
                       <img
                         className="inline-block w-10 h-10 rounded-full"
                         src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600"
-                        alt="Dan_Abromov" />
+                        alt="Dan_Abromov"
+                      />
                     </Link>
                   </div>
                 </div>
@@ -108,7 +145,7 @@ function Navbar() {
                 <div className="border-t border-gray-200 px-4 py-6">
                   <a href="#" className="-m-2 flex items-center p-2">
                     <img
-                      src="img/indiaflag.png"
+                      src="https://ecommerce-sk.vercel.app/img/indiaflag.png"
                       alt=""
                       className="block h-auto w-5 flex-shrink-0"
                     />
@@ -159,23 +196,23 @@ function Navbar() {
                     All Products
                   </Link>
 
-                  {user? " " : <Link to={'/signup'} className="text-sm font-medium text-gray-700 " style={{ color: mode === 'dark' ? 'white' : '', }}>
+                  {user ? " " : <Link to={'/signup'} className="text-sm font-medium text-gray-700 " style={{ color: mode === 'dark' ? 'white' : '', }}>
                     Signup
-                  </Link> }
+                  </Link>}
 
-                 {user?  <Link to={'/order'} className="text-sm font-medium text-gray-700 " style={{ color: mode === 'dark' ? 'white' : '', }}>
+                  {user ? <Link to={'/order'} className="text-sm font-medium text-gray-700 " style={{ color: mode === 'dark' ? 'white' : '', }}>
                     Order
                   </Link> : " "}
 
-                  {user?.user?.email === 'missmama2001@gmail.com' ? 
-                  <Link to={'/dashboard'} className="text-sm font-medium text-gray-700 " style={{ color: mode === 'dark' ? 'white' : '', }}>
-                    Admin
-                  </Link>  : "" }
+                  {user?.user?.email === 'missmama2001@gmail.com' ?
+                    <Link to={'/dashboard'} className="text-sm font-medium text-gray-700 " style={{ color: mode === 'dark' ? 'white' : '', }}>
+                      Admin
+                    </Link> : ""}
 
-                  {user? 
-                  <a onClick={logout} className="text-sm font-medium text-gray-700 cursor-pointer  " style={{ color: mode === 'dark' ? 'white' : '', }}>
-                    Logout
-                  </a> : " " }
+                  {user ?
+                    <a onClick={logout} className="text-sm font-medium text-gray-700 cursor-pointer  " style={{ color: mode === 'dark' ? 'white' : '', }}>
+                      Logout
+                    </a> : " "}
 
                 </div>
 
@@ -205,7 +242,8 @@ function Navbar() {
                     {mode === 'light' ?
                       (<FiSun className='' size={30} />
                       ) : 'dark' ?
-                        (<BsFillCloudSunFill size={30} />
+                        (<BsFillMoonStarsFill size={30} />
+
                         ) : ''}
                   </button>
                 </div>

@@ -38,7 +38,7 @@ function ProductInfo() {
   useEffect(() => {
     getProductData()
 
-}, [])
+}, [params.id])
 
 
 const dispatch = useDispatch()
@@ -91,7 +91,7 @@ useEffect(() => {
                      {products.description}
                   </p>
                   <div className="flex flex-wrap justify-between">
-                    <h2 className="font-bold text-xl">$58.00</h2>
+                    <h2 className="font-bold text-xl">₹{products.price}</h2>
                     <div className="flex items-center gap-2">
                       <button onClick={()=>addCart(products)} className=' bg-blue-700 px-3 py-2 rounded text-white font-semibold'>Add To Cart</button>
                       <div className=" w-8 h-8 bg-gray-200 flex justify-center items-center rounded-full">

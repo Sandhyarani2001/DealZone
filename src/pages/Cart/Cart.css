@@ -1,0 +1,4 @@
+.scrollable-cart-items {
+    max-height: 87vh; /* Adjust the height as needed */
+    overflow-y: auto;
+  }
