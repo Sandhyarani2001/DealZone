@@ -1,49 +1,79 @@
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import myContext from '../../context/Data/myContext'
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/FirebaseConfig';
 import { toast } from 'react-toastify';
 import Loader from '../../components/loader/Loader';
+import myContext from '../../context/Data/myContext';
+import { auth } from '../../firebase/FirebaseConfig';
+import { useDispatch } from 'react-redux';
+import { setCart } from '../../redux/cartSlice';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { fireDB } from '../../firebase/FirebaseConfig';
 
 function Login() {
-  const context = useContext(myContext)
-  const { loading , setLoading} = context;
+    const context = useContext(myContext)
+    const {loading, setLoading} = context;
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-  const signin = async () => {
-    setLoading(true)
-    try {
-      const result =   await signInWithEmailAndPassword(auth, email, password)
-      localStorage.setItem('user',JSON.stringify(result));
-      toast.success("signin Successfully",{
-        position:"top-right",
-        autoClose:2000,
-        hideProgressBar:true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        progress: undefined,
-        theme:"colored"
+    const fetchCartItems = async (userEmail) => {
+      const cartItems = [];
+      const q = query(collection(fireDB, 'cart'), where("email", "==", userEmail));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+          cartItems.push(doc.data());
       });
+      return cartItems;
+  };
 
-      // Restore cart data
-      const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
-      localStorage.setItem('cart', JSON.stringify(savedCart)); // Ensure cart data is saved
-      
-      // localStorage.setItem('user', JSON.stringify(result))
-      navigate('/')
-      setLoading(false)
+    const signin = async () => {
+        setLoading(true)
+        try {
+            const result = await signInWithEmailAndPassword(auth,email,password);
+            toast.success("Login successful", {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+              })
+            localStorage.setItem('user', JSON.stringify(result))
 
-    } catch (error) {
-     
-      console.log(error);
-      setLoading(false)
+           // Fetch cart items from Firestore after login
+           const cartItems = await fetchCartItems(result.user.email);
+
+           // Update Redux store with fetched cart items
+           dispatch(setCart(cartItems));
+            
+            navigate('/')
+            setLoading(false)
+            
+        } catch (error) {
+            console.log(error)
+            toast.error("Invali email and password", {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+              })
+            setLoading(loading)
+        }
+
     }
-  }
+
+
   return (
     <div className='flex justify-center items-center h-screen'>
       {loading && < Loader/>}
@@ -53,7 +83,7 @@ function Login() {
         </div>
         <div className="flex flex-col">
           <input
-            type="mail"
+            type="email"
             placeholder='Email'
             className='lg:w-[20em] bg-gray-600 mb-4 rounded px-3 py-1 text-white placeholder:text-gray-200 outline-none'
             name='email'

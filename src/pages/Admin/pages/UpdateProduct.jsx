@@ -11,7 +11,7 @@ function UpdateProduct() {
             <div className=" flex justify-center items-center h-screen mt-0">
                 <div className="px-10 py-6 rounded-xl bg-gray-800">
                     <div className="text-center font-bold mb-8 text-white text-3xl">
-                        <h1>Add Product</h1>
+                        <h1>Update Product</h1>
                     </div>
                     <div className=''>
                         <input type="text"
@@ -41,10 +41,10 @@ function UpdateProduct() {
                         />
                     </div>
                     <div className=''>
-                        <input type="category"
+                        <input type="text"
                             value={products.category}
                             onChange={(e) => setProducts({ ...products, category: e.target.value })}
-                            name='price'
+                            name='category'
                             placeholder='Product Category'
                             className='bg-gray-600 px-2 mb-3 py-2 rounded-lg w-full lg:w-[20em] text-white placeholder:text-gray-200 outline-none '
                         />

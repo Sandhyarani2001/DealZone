@@ -2,11 +2,17 @@
 import React, { useContext ,useEffect} from 'react'
 import myContext from '../../context/Data/myContext'
 import { useDispatch, useSelector } from 'react-redux'
-import { addToCart } from '../../redux/cartSlice'
+import { addToCart , setCart } from '../../redux/cartSlice'
 import { toast } from 'react-toastify'
 import Filter from '../../components/filter/Filter'
+import { useNavigate } from 'react-router-dom'
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { fireDB } from '../../firebase/FirebaseConfig';
 
 function AllProduct() {
+
+    const navigate = useNavigate()
+
     const context = useContext(myContext)
     const { mode, product,searchkey, setSearchkey,filterType, setFilterType,filterPrice, setFilterPrice } = context
 
@@ -14,10 +20,35 @@ function AllProduct() {
     const cartItems = useSelector((state) => state.cart)
     console.log(cartItems)
 
+    useEffect(() => {
+        const fetchCartItems = async () => {
+            const userData = JSON.parse(localStorage.getItem('user'));
+            const userEmail = userData?.user?.email;
+
+            if (userEmail) {
+                try {
+                    const q = query(collection(fireDB, 'cart'), where('email', '==', userEmail));
+                    const querySnapshot = await getDocs(q);
+
+                    const items = querySnapshot.docs.map((doc) => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    }));
+
+                    dispatch(setCart(items));
+                } catch (err) {
+                    console.log('Failed to fetch cart items:', err);
+                }
+            }
+        };
+
+        fetchCartItems();
+    }, [dispatch]);
+
     //add to cart
 
     const addCart = (product) =>{
-        dispatch(addToCart(product));
+        dispatch(addToCart({...product,time:''}));
         toast.success('add to cart')
     }
 
@@ -40,7 +71,9 @@ function AllProduct() {
                     </div>
 
                     <div className="flex flex-wrap -m-4">
-                        {product.filter((obj) => obj.title.toLowerCase().includes(searchkey)).filter((obj) => obj.category.toLowerCase().includes(filterType)).map((item, index) => {
+                        {product.filter((obj) => obj.title.toLowerCase().includes(searchkey))
+                        .filter((obj) => obj.category.toLowerCase().includes(filterType))
+                        .filter((obj) => obj.price.includes(filterPrice)).map((item, index) => {
                             const { title, price, description, imageUrl, id } = item
                             return (
                                 <div  key={index} className="p-4 md:w-1/4  drop-shadow-lg " >

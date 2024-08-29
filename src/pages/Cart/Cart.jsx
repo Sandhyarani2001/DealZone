@@ -6,39 +6,75 @@ import { useDispatch, useSelector } from 'react-redux';
 import { removeFromCart, setCart } from '../../redux/cartSlice';
 import { toast } from 'react-toastify';
 import { fireDB } from '../../firebase/FirebaseConfig';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import './Cart.css'
 
 function Cart() {
+
+
   const context = useContext(myContext)
   const { mode } = context
 
+  const dispatch = useDispatch();
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const cartItems = useSelector((state) => state.cart)
+  
   // console.log(cartItems);
 
-  //delete cart
-
-  const dispatch = useDispatch()
 
   const deleteCart = (item) => {
     dispatch(removeFromCart(item))
-    toast.success("delete cart")
-
+    toast.success("Delete cart")
   }
 
-  //delete from local storage
-
+  
+  // //delete from local storage
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems))
+    localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
-    dispatch(setCart(savedCart));
-  }, [dispatch]);
+
 
   const [totalAmount, setTotalAmount] = useState(0);
+
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      setLoading(true);
+      setError(null);
+
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const userEmail = userData?.user?.email;
+
+      try {
+        const q = query(collection(fireDB, 'cart'), where('email', '==', userEmail));
+        const querySnapshot = await getDocs(q);
+
+        const items = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Update Redux state with fetched cart items
+        dispatch(setCart(items));
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch cart items');
+        setLoading(false);
+        console.log(err);
+      }
+    };
+
+    fetchCartItems();
+  }, [dispatch]);
+
+  
+
+
+  
+  
 
   useEffect(() => {
     let temp = 0;
@@ -49,8 +85,23 @@ function Cart() {
     console.log(temp)
   }, [cartItems])
 
-  const shipping = parseInt(100);
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
+  let shipping = 0;
+  //  totalAmout <= 300 ? parseInt(100) : parseInt(0);
+  if (totalAmount == 0) {
+    shipping = 0;
+  }
+  else if (totalAmount > 0) {
+    if (totalAmount <= 300) {
+      shipping = 100
+    }
+    else {
+      shipping = 0
+    }
+  }
   const grandTotal = shipping + totalAmount;
   // console.log(grandTotal);
   // ============================================================
@@ -100,7 +151,7 @@ function Cart() {
       amount: parseInt(grandTotal * 100),
       currency: "INR",
       order_receipt: "order_rcptid_" + name,
-      name: "E-Bharat",
+      name: "DealZone",
       description: "for testing purpose",
       handler: function (response) {
         console.log(response)
@@ -146,16 +197,22 @@ function Cart() {
 
   }
 
+
   return (
     <div className=' bg-gray-100 pt-5 h-screen'>
       <h1 className='font-bold mb-8 text-center text-3xl'>Cart Items</h1>
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p>{error}</p>
+      ) : (
       <div className="mx-auto max-w-5xl justify-center px-6 md:flex md:space-x-6 xl:px-0 ">
         <div className="rounded-lg md:w-2/3 ">
           <div className="scrollable-cart-items">
             {cartItems.map((item, index) => {
               const { title, price, description, imageUrl } = item
               return (
-                <div className="justify-between mb-6 rounded-lg border  drop-shadow-xl bg-white p-6  sm:flex  sm:justify-start" style={{ backgroundColor: mode === 'dark' ? 'rgb(32 33 34)' : '', color: mode === 'dark' ? 'white' : '', }}>
+                <div key={index} className="justify-between mb-6 rounded-lg border  drop-shadow-xl bg-white p-6  sm:flex  sm:justify-start" style={{ backgroundColor: mode === 'dark' ? 'rgb(32 33 34)' : '', color: mode === 'dark' ? 'white' : '', }}>
                   <img src={imageUrl} alt="product-image" className="w-full rounded-lg sm:w-40" />
                   <div className="sm:ml-4 sm:flex sm:w-full sm:justify-between">
                     <div className="mt-5 sm:mt-0 mr-5">
@@ -206,6 +263,7 @@ function Cart() {
           />
         </div>
       </div>
+      )}
     </div>
   )
 }

@@ -6,7 +6,6 @@ import {toast} from 'react-toastify'
 import { auth, fireDB } from '../../firebase/FirebaseConfig';
 import { Timestamp, addDoc, collection } from 'firebase/firestore';
 import Loader from '../../components/loader/Loader';
-import { ToastContainer } from 'react-toastify';
 
 function SignUp() {
 
@@ -29,7 +28,7 @@ function SignUp() {
 
     try {
       const users = await createUserWithEmailAndPassword(auth, email, password);
-      console.log(users);
+      // console.log(users);
 
       const user = {
         name: name,
@@ -37,7 +36,7 @@ function SignUp() {
         email: users.user.email,
         time: Timestamp.now()
       }
-
+      
       const userRef = collection(fireDB, "users")
       await addDoc(userRef, user);
       toast.success("signUp Successfully")
@@ -48,6 +47,7 @@ function SignUp() {
       setLoading(false)
     } catch (error) {
       console.log(error);
+      toast.error("Sign up failed. Please try again.");
       setLoading(false)
     }
   }

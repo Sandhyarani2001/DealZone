@@ -1,27 +1,28 @@
+import React, { useContext, useState } from 'react'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import { MdOutlineProductionQuantityLimits } from 'react-icons/md'
+import myContext from '../../../context/Data/myContext'
+import { Link, useNavigate } from 'react-router-dom';
 import { AiFillShopping } from 'react-icons/ai'
 import { FaUser } from 'react-icons/fa'
 import { FaCartPlus } from 'react-icons/fa'
-import React, { useContext, useState } from 'react'
-import myContext from '../../../context/Data/myContext'
-import { RiDeleteBin6Line } from "react-icons/ri";
 import { FiEdit } from "react-icons/fi";
-import { Link } from 'react-router-dom';
 
 function DashboardTab() {
+    const navigate = useNavigate()
     const context = useContext(myContext)
-    const { mode, product, deleteProduct, edithandle, order , user} = context
-    console.log(product);
-    // let [isOpen, setIsOpen] = useState(false)
+    const { mode, product,edithandle, deleteProduct, order , user} = context
 
-    // function closeModal() {
-    //     setIsOpen(false)
-    // }
+    // console.log(product);
+    let [isOpen, setIsOpen] = useState(false)
 
-    // function openModal() {
-    //     setIsOpen(true)
-    // }
+    function closeModal() {
+        setIsOpen(false)
+    }
+
+    function openModal() {
+        setIsOpen(true)
+    }
 
     const add = () => {
         window.location.href = '/addproduct'
@@ -294,7 +295,7 @@ function DashboardTab() {
                                             const {name, uid, email, date}= item;
                                             {/* console.log("user" + user); */}
                                             return(
-                                                <tbody className=''>
+                                                <tbody className='' key={index}>
                                             <tr className='bg-gray-50 border-b-2 dark:border-gray-400' style={{ background: mode === "dark" ? "rgb(46 49 55)" : "", color: mode === "dark" ? "white" : "" }}>
                                                 <td className='px-6 py-4 text-black' style={{ color: mode === "dark" ? "white" : "" }}>
                                                     {index+1}.

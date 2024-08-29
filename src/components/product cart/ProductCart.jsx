@@ -1,27 +1,35 @@
-import React, { useContext ,useEffect} from 'react'
-import myContext from '../../context/Data/myContext'
+import React, { useContext, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addToCart } from '../../redux/cartSlice'
 import { toast } from 'react-toastify'
+import { useNavigate } from 'react-router-dom'
+import myContext from '../../context/Data/myContext'
+import { fireDB } from '../../firebase/FirebaseConfig'
+import { doc, getDoc } from 'firebase/firestore'
 
 function ProductCart() {
+    const navigate = useNavigate()
     const context = useContext(myContext)
-    const { mode, product,searchkey, setSearchkey,filterType, setFilterType,filterPrice, setFilterPrice } = context
+    const { mode, product, searchkey, filterType,
+        filterPrice } = context
 
     const dispatch = useDispatch()
-    const cartItems = useSelector((state) => state.cart)
-    console.log(cartItems)
+    const cartItems = useSelector((state) => state.cart);
 
-    //add to cart
-
-    const addCart = (product) =>{
+    const userData = JSON.parse(localStorage.getItem('user'))
+    const addCart = (product) => {
         dispatch(addToCart(product));
-        toast.success('add to cart')
+        toast.success('add to cart');
+
     }
 
-    useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(cartItems));
-    }, [cartItems])
+
+
+
+
+    useEffect(()=>{
+        localStorage.setItem('cart',JSON.stringify(cartItems))
+    },[cartItems])
     
     return (
         <>
@@ -53,7 +61,7 @@ function ProductCart() {
                                             <p className="leading-relaxed mb-3" style={{ color: mode === 'dark' ? 'white' : '' }}>₹{price}</p>
                                             <div className=" flex justify-center">
                                                 <button
-                                                 onClick={()=>addCart(item)}
+                                                 onClick={ userData? ()=>addCart(item) : () => navigate('/login')}
                                                  type="button" className="focus:outline-none text-white bg-pink-600 hover:bg-pink-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm w-full  py-2">Add To Cart</button>
 
 

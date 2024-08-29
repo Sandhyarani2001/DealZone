@@ -7,9 +7,9 @@ import { BiSolidMessageRounded } from "react-icons/bi";
 import { IoMdHeart } from "react-icons/io";
 import myContext from '../../context/Data/myContext';
 import { useParams } from 'react-router-dom';
-import { addToCart } from '../../redux/cartSlice';
+import { addToCart, setCart } from '../../redux/cartSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { fireDB } from '../../firebase/FirebaseConfig';
 import { toast } from 'react-toastify';
 
@@ -19,7 +19,9 @@ function ProductInfo() {
 
     const [products, setProducts] = useState('');
     const params = useParams()
-    console.log(products.title);
+    // console.log(products.title);
+
+    
 
     const getProductData = async () => {
       setLoading(true)
@@ -38,12 +40,38 @@ function ProductInfo() {
   useEffect(() => {
     getProductData()
 
-}, [params.id])
+}, [])
 
 
 const dispatch = useDispatch()
 const cartItems = useSelector((state) => state.cart)
 // console.log(cartItems)
+
+
+useEffect(() => {
+  const fetchCartItems = async () => {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const userEmail = userData?.user?.email;
+
+      if (userEmail) {
+          try {
+              const q = query(collection(fireDB, 'cart'), where('email', '==', userEmail));
+              const querySnapshot = await getDocs(q);
+
+              const items = querySnapshot.docs.map((doc) => ({
+                  id: doc.id,
+                  ...doc.data(),
+              }));
+
+              dispatch(setCart(items));
+          } catch (err) {
+              console.log('Failed to fetch cart items:', err);
+          }
+      }
+  };
+
+  fetchCartItems();
+}, [dispatch]);
 
 // add to cart
 const addCart = (products) => {

@@ -1,13 +1,9 @@
 import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useContext, useState } from 'react'
-import myContext from '../../context/Data/myContext'
+import { Fragment, useState } from 'react'
 
 export default function Modal({ name, address, pincode, phoneNumber, setName, setAddress, setPincode, setPhoneNumber, buyNow }) {
-   
-    // const context = useContext(myContext)
-    // const {mode} = context
-
-  let [isOpen, setIsOpen] = useState(false)
+    
+    let [isOpen, setIsOpen] = useState(false)
 
   function closeModal() {
     setIsOpen(false)

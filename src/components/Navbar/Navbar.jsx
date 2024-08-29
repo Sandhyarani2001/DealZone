@@ -1,36 +1,62 @@
+
 import React, { Fragment, useContext, useState } from 'react'
 import myContext from '../../context/Data/myContext'
 import { Dialog, Transition } from '@headlessui/react'
 import { FiSun } from 'react-icons/fi'
 import { BsFillMoonStarsFill } from 'react-icons/bs'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { RxCross2 } from 'react-icons/rx'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch} from 'react-redux'
+// import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+// import { fireDB } from '../../firebase/FirebaseConfig'
+// import { setCart } from '../../redux/cartSlice'
 
 
 function Navbar() {
-
-  const [open, setOpen] = useState(false);
+  const navigate = useNavigate()
 
   const context = useContext(myContext);
   const { mode, toggleMode } = context;
 
+  const [open, setOpen] = useState(false);
+ 
   const user = JSON.parse(localStorage.getItem('user'))
+  const cartItems = useSelector((state) => state.cart);
+  // const dispatch = useDispatch();
   console.log(user?.user?.email);
 
 
+  // useEffect(() => {
+  //   if (user) {
+  //     const q = query(collection(fireDB, 'cart'), where('email', '==', user.user.email));
+
+  //     const unsubscribe = onSnapshot(q, (querySnapshot) => {
+  //       const items = [];
+  //       querySnapshot.forEach((doc) => {
+  //         items.push(doc.data());
+  //       });
+  //       dispatch(setCart(items)); // Update Redux state with real-time data
+  //     });
+
+  //     // Cleanup the listener on unmount
+  //     return () => unsubscribe();
+  //   }
+  // }, [dispatch, user]);
+
+
+  
+
   const logout = () => {
     localStorage.clear('user');
-    window.location.href = '/login';
-    localStorage.setItem('cart', JSON.stringify(cartItems));
+    navigate('/login')
   }
 
-  const cartItems = useSelector((state) => state.cart);
+  
 
-  const handleLinkClick = () => {
-    setOpen(false);
-  };
+  
 
+
+ 
 
   return (
     <div className='bg-white sticky top-0 z-50'>
@@ -77,7 +103,6 @@ function Navbar() {
                       to={'/allproducts'}
                       className="text-sm font-medium text-gray-900"
                       style={{ color: mode === 'dark' ? 'white' : '', }}
-                      onClick={handleLinkClick}
                     >
                       All Products
                     </Link>
@@ -87,7 +112,6 @@ function Navbar() {
                         to={'/signup'}
                         className="text-sm font-medium text-gray-700"
                         style={{ color: mode === 'dark' ? 'white' : '', }}
-                        onClick={handleLinkClick}
                       >
                         Signup
                       </Link>
@@ -98,7 +122,6 @@ function Navbar() {
                         to={'/order'}
                         style={{ color: mode === 'dark' ? 'white' : '', }}
                         className="-m-2 block p-2 font-medium text-gray-900"
-                        onClick={handleLinkClick}
                       >
                         Order
                       </Link>
@@ -109,7 +132,6 @@ function Navbar() {
                         to={'/dashboard'}
                         className="-m-2 block p-2 font-medium text-gray-900"
                         style={{ color: mode === 'dark' ? 'white' : '', }}
-                        onClick={handleLinkClick}
                       >
                         Admin
                       </Link>
@@ -119,7 +141,6 @@ function Navbar() {
                       <a
                         onClick={() => {
                           logout();
-                          handleLinkClick();
                         }}
                         className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer"
                         style={{ color: mode === 'dark' ? 'white' : '', }}
@@ -131,7 +152,6 @@ function Navbar() {
                     <Link
                       to={'/'}
                       className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer"
-                      onClick={handleLinkClick}
                     >
                       <img
                         className="inline-block w-10 h-10 rounded-full"
@@ -238,7 +258,6 @@ function Navbar() {
                 {/* Search */}
                 <div className="flex lg:ml-6">
                   <button className='' onClick={toggleMode}>
-                    {/* <MdDarkMode size={35} style={{ color: mode === 'dark' ? 'white' : '' }} /> */}
                     {mode === 'light' ?
                       (<FiSun className='' size={30} />
                       ) : 'dark' ?
@@ -250,7 +269,7 @@ function Navbar() {
 
                 {/* Cart */}
                 <div className="ml-4 flow-root lg:ml-6">
-                  <Link to={'/cart'} className="group -m-2 flex items-center p-2" style={{ color: mode === 'dark' ? 'white' : '', }}>
+                  <Link to={user ? '/cart' : '/login'} className="group -m-2 flex items-center p-2" style={{ color: mode === 'dark' ? 'white' : '', }}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                     </svg>
@@ -268,4 +287,4 @@ function Navbar() {
   )
 }
 
-export default Navbar
+export default Navbar;

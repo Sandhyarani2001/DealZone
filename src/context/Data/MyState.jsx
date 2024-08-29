@@ -1,14 +1,10 @@
-import React, { useEffect, useState } from "react";
-import myContext from "./myContext";
-import {fireDB} from '../../firebase/FirebaseConfig';
-import { Timestamp, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, setDoc } from "firebase/firestore";
-import { toast } from "react-toastify";
-import { addDoc } from "firebase/firestore";
-
-const MyState = ({ children }) => {
-
+import React, { useEffect, useState } from 'react'
+import MyContext from './myContext'
+import { Timestamp, addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, setDoc, where } from 'firebase/firestore';
+import { toast } from 'react-toastify';
+import { fireDB } from '../../firebase/FirebaseConfig';
+function myState(props) {
     const [mode, setMode] = useState('light');
-    const [loading, setLoading] = useState(false)
 
     const toggleMode = () => {
         if (mode === 'light') {
@@ -21,6 +17,7 @@ const MyState = ({ children }) => {
         }
     }
 
+    const [loading, setLoading] = useState(false);
 
     const [products, setProducts] = useState({
         title: null,
@@ -37,166 +34,243 @@ const MyState = ({ children }) => {
                 year: "numeric",
             }
         )
-        
-    })
+    });
 
-    //  ---------------Add Product Section--------------
     const addProduct = async () => {
         if (products.title == null || products.price == null || products.imageUrl == null || products.category == null || products.description == null) {
-            return toast.error("Please fill all fields")
+            return toast.error("all fields are required")
         }
 
-        const productRef = collection(fireDB, "products")
         setLoading(true)
+
         try {
+            const productRef = collection(fireDB, 'products');
             await addDoc(productRef, products)
-            toast.success("Product Add successfully")
-            setTimeout(()=>{
+            toast.success("Add product successfully");
+            setTimeout(() => {
                 window.location.href = '/dashboard'
-            },800)
-            getProductData()
+            }, 800);
+            getProductData();
             setLoading(false)
-        }
-        catch (error) {
-            console.log(error);
-            setLoading(false)
-        }
-    }
-
-
-    const [product, setProduct] = useState([])
-
-    //get data
-
-    const getProductData = async () => {
-        setLoading(true)
-        try {
-            const q = query(
-                collection(fireDB, "products"),
-                orderBy("time"),
-                //limit(5)
-            );
-
-            const data = onSnapshot(q,(QuerySnapshot) => {
-                let productArray = [];
-                QuerySnapshot.forEach((doc)=>{
-                    productArray.push({...doc.data(), id: doc.id})
-                });
-                setProduct(productArray);
-                setLoading(false);
-            });
-            return () => data;
         } catch (error) {
             console.log(error);
-            setLoading(false);
+            setLoading(false)
+        }
+        // setProducts("")
+
+
+    }
+
+    const [product, setProduct] = useState([]);
+
+    const getProductData = async () => {
+
+        setLoading(true)
+
+        try {
+            const q = query(
+                collection(fireDB, 'products'),
+                orderBy('time')
+            );
+
+            const data = onSnapshot(q, (QuerySnapshot) => {
+                let productArray = [];
+                QuerySnapshot.forEach((doc) => {
+                    productArray.push({ ...doc.data(), id: doc.id });
+                });
+                setProduct(productArray);
+                setLoading(false)
+            });
+
+            return () => data;
+
+        } catch (error) {
+            console.log(error)
+            setLoading(false)
+        }
+
+    }
+
+    useEffect(() => {
+        getProductData();
+    }, []);
+
+    // update product function
+
+    const edithandle = (item) => {
+        setProducts(item)
+    }
+
+    const updateProduct = async () => {
+        setLoading(true)
+        try {
+
+            await setDoc(doc(fireDB, 'products', products.id), products)
+            toast.success("Product Updated successfully")
+            setTimeout(() => {
+                window.location.href = '/dashboard'
+            }, 800);
+            getProductData();
+            setLoading(false)
+
+        } catch (error) {
+            console.log(error)
+            setLoading(false)
+        }
+        setProducts("")
+    }
+
+    // delete product
+
+    const deleteProduct = async (item) => {
+        try {
+            setLoading(true)
+            await deleteDoc(doc(fireDB, 'products', item.id))
+            toast.success('Product Deleted successfully')
+            getProductData();
+            setLoading(false)
+        } catch (error) {
+            console.log(error)
+            setLoading(false)
         }
     }
 
-    //for fetch getproductdata
-  useEffect(() => {
-    getProductData();
-  },[]);
+    
+    const userData = JSON.parse(localStorage.getItem('user'))
 
-  const edithandle = (item) => {
-    setProducts(item)
-  }
+    const [cartItem, setCartItem] = useState([])
+    
+    // get cartItem
+    const getCartItem = async () => {
+        
+        try {
+            const q = query(
+                collection(fireDB, 'cart'),
+                where('email', '==', userData.user.email)
+            );
 
-  const updateProduct = async () => {
-    setLoading(true)
-    try {
-      await setDoc(doc(fireDB, "products", products.id), products);
-      toast.success("Product Updated successfully")
-      getProductData();
-      setLoading(false)
-      window.location.href = '/dashboard'
-    } catch (error) {
-      setLoading(false)
-      console.log(error)
+            const data = onSnapshot(q, (QuerySnapshot) => {
+                let item = [];
+                QuerySnapshot.forEach((doc) => {
+                    item.push({ ...doc.data(), cartId: doc.id })
+                });
+                setCartItem([...item])
+            });
+            return () => data;
+            
+        }
+        catch (error) {
+            throw error
+        }
+        
     }
-    setProducts("")
-  }
 
-  const deleteProduct =async (item) =>{
-    setLoading(true)
-    try {
-        await deleteDoc(doc(fireDB, 'products', item.id))
-        toast.success('Product Deleted successfully')
-        getProductData()
-        setLoading(false)
-    } catch (error) {
-        console.log(error);
-        setLoading(false)
-    }
-  }
+    useEffect(() => {
+        getCartItem()
+    }, [])
 
-// orders
-  const [order, setOrder] = useState([]);
+// ------------------------------------------
 
-  const getOrderData = async () =>{
-    setLoading(true);
-    try {
-        const result = await getDocs(collection(fireDB, "order"))
-        const ordersArray = [];
-        result.forEach((doc)=>{
-            ordersArray.push(doc.data());
+    // const cartInfo = {
+    //     cartItems,
+    //     date: new Date().toLocaleString(
+    //       "en-US",
+    //       {
+    //         month: "short",
+    //         day: "2-digit",
+    //         year: "numeric",
+    //       }
+    //     )
+        // email: JSON.parse(localStorage.getItem("user")).user.email,
+        // userid: JSON.parse(localStorage.getItem("user")).user.uid,
+        // const userid = JSON.parse(localStorage.getItem('user')).user?.uid
+    //   }
+    //   try {
+    //     const cartRef = collection(fireDB, "cart");
+    //     addDoc(cartRef, cartInfo)
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+
+    // 
+
+    // const [cartItem, setCartItem] = useState([])
+
+    // const getCartItem = async () => {
+    //     setLoading(true)
+    //     try {
+    //         const result = await getDocs(collection(fireDB, "cart"))
+    //         const cartsArray = [];
+    //         result.forEach((doc) => {
+    //             cartsArray.push(doc.data());
+    //             setLoading(false)
+    //         });
+    //         setCartItem(cartsArray);
+    //         setLoading(false);
+    //     } catch (error) {
+    //         console.log(error)
+    //         setLoading(false)
+    //     }
+    // }
+
+    const [order, setOrder] = useState([]);
+
+    const getOrderData = async () => {
+        setLoading(true)
+        try {
+            const result = await getDocs(collection(fireDB, "order"))
+            const ordersArray = [];
+            result.forEach((doc) => {
+                ordersArray.push(doc.data());
+                setLoading(false)
+            });
+            setOrder(ordersArray);
             setLoading(false);
-        });
-        setOrder(ordersArray);
-        console.log(ordersArray);
-         setLoading(false);
-    } catch (error) {
-        console.log(error);
-        setLoading(false);
-    }
-  }
-
-  useEffect(()=>{
-    getProductData();
-    getOrderData();
-  },[]);
-
-
-  //get user data
-
-  const [user, setUser] = useState([]);
-
-  const getUserData = async ()=>{
-    setLoading(true)
-      try {
-        const result = await getDocs(collection(fireDB, "users"))
-        const userArray = [];
-        result.forEach((doc)=>{
-            userArray.push(doc.data());
+        } catch (error) {
+            console.log(error)
             setLoading(false)
-        });
-        setUser(userArray);
-        console.log(userArray);
-        setLoading(false)
-      } catch (error) {
-        console.log(error);
-        setLoading(false)
-     }
+        }
+    }
 
-  }
+    const [user, setUser] = useState([]);
 
-  useEffect(() => {
-    getProductData();
-    getOrderData();
-    getUserData();
-  }, []);
+    const getUserData = async () => {
+        setLoading(true)
+        try {
+            const result = await getDocs(collection(fireDB, "users"))
+            const usersArray = [];
+            result.forEach((doc) => {
+                usersArray.push(doc.data());
+                setLoading(false)
+            });
+            setUser(usersArray);
+            setLoading(false);
+        } catch (error) {
+            console.log(error)
+            setLoading(false)
+        }
+    }
 
+    useEffect(() => {
+        getOrderData();
+        getUserData();
+    }, []);
 
-  //filter
-
-  const [searchkey, setSearchkey] = useState('')
-  const [filterType, setFilterType] = useState('')
-  const [filterPrice, setFilterPrice] = useState('')
+    const [searchkey, setSearchkey] = useState('')
+    const [filterType, setFilterType] = useState('')
+    const [filterPrice, setFilterPrice] = useState('')
 
     return (
-        <myContext.Provider value={{ mode, toggleMode, loading, setLoading, products,setProducts,addProduct, product,edithandle, updateProduct, deleteProduct,order, user,searchkey, setSearchkey,filterType, setFilterType,filterPrice, setFilterPrice}}>
-            {children}
-        </myContext.Provider>
+        <MyContext.Provider value={{
+            mode, toggleMode, loading, setLoading,
+            products, setProducts, addProduct, product,
+            edithandle, updateProduct, deleteProduct, order,
+            user, searchkey, setSearchkey, filterType, setFilterType,
+            filterPrice, setFilterPrice
+        }}>
+            {props.children}
+        </MyContext.Provider>
     )
 }
 
-export default MyState;
+export default myState
